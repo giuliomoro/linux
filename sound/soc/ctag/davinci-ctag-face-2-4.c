@@ -67,6 +67,7 @@ static int snd_davinci_audiocard_init(struct snd_soc_pcm_runtime *rtd)
 	int ret;
 	unsigned int tdm_mask = 0x00;
 	u32 tdm_slots;
+	printk(KERN_INFO "snd_davinci_audiocard_init\n");
 
 	/*
 		Add davinci-evm specific DAPM widgets
@@ -102,6 +103,7 @@ static int snd_davinci_audiocard_init(struct snd_soc_pcm_runtime *rtd)
 		Configure TDM mode of CPU and audio codec interface
 		(ad193x codec driver ignores TX / RX mask and width)
 	*/
+	printk(KERN_INFO "SET_TDM_SLOT for both to %x %x %d %d\n", tdm_mask, tdm_mask, tdm_slots, 32);
 	ret = snd_soc_dai_set_tdm_slot(codec_dai, tdm_mask, tdm_mask, tdm_slots, 32);
 	if (ret < 0){
 		dev_err(codec_dai->dev, "Unable to set AD193x TDM slots.\n");
@@ -133,6 +135,7 @@ static int snd_davinci_audiocard_hw_params(struct snd_pcm_substream *substream,
 		snd_soc_card_get_drvdata(soc_card))->sysclk;
 	unsigned codec_clock = ((struct snd_soc_card_drvdata_davinci *)
 		snd_soc_card_get_drvdata(soc_card))->codec_clock;
+	printk(KERN_INFO "snd_davinci_audiocard_hw_params\n");
 
 	/*
 		Set master clock of CPU and audio codec interface
@@ -162,6 +165,7 @@ static int snd_davinci_audiocard_startup(struct snd_pcm_substream *substream) {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_card *soc_card = rtd->card;
 	struct snd_soc_card_drvdata_davinci *drvdata = snd_soc_card_get_drvdata(soc_card);
+	printk(KERN_INFO "snd_davinci_audiocard_startup\n");
 
 	if (drvdata->mclk)
 		return clk_prepare_enable(drvdata->mclk);
@@ -176,6 +180,7 @@ static void snd_davinci_audiocard_shutdown(struct snd_pcm_substream *substream) 
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_card *soc_card = rtd->card;
 	struct snd_soc_card_drvdata_davinci *drvdata = snd_soc_card_get_drvdata(soc_card);
+	printk(KERN_INFO "snd_davinci_audiocard_shutdown\n");
 
 	if (drvdata->mclk)
 		clk_disable_unprepare(drvdata->mclk);
@@ -194,7 +199,7 @@ static struct snd_soc_ops snd_davinci_audiocard_ops = {
 	Interface setup
 	(rxclk and txclk are configured asynchronous in i2s mode (see mcasp platform driver))
 */
-#define AUDIOCARD_AD193X_DAIFMT ( SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_IF | SND_SOC_DAIFMT_CBM_CFM )
+#define AUDIOCARD_AD193X_DAIFMT ( SND_SOC_DAIFMT_DSP_A | SND_SOC_DAIFMT_NB_IF | SND_SOC_DAIFMT_CBM_CFS )
 
 SND_SOC_DAILINK_DEFS(hifi,
 	DAILINK_COMP_ARRAY(COMP_EMPTY()),
@@ -245,6 +250,7 @@ static int snd_davinci_audiocard_probe(struct platform_device *pdev)
 	struct snd_soc_card_drvdata_davinci *drvdata = NULL;
 	struct clk *mclk;
 	int ret = 0, bb_device = 0;
+	printk(KERN_INFO "snd_davinci_audiocard_probe\n");
 
 
 	snd_davinci_audiocard.dai_link = dai;
@@ -337,6 +343,7 @@ static int snd_davinci_audiocard_probe(struct platform_device *pdev)
 /* Sound card disconnect */
 static int snd_davinci_audiocard_remove(struct platform_device *pdev)
 {
+	printk(KERN_INFO "snd_davinci_audiocard_remove\n");
 	return snd_soc_unregister_card(&snd_davinci_audiocard);
 }
 

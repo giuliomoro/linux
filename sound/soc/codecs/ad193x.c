@@ -22,6 +22,7 @@
 
 #include "ad193x.h"
 
+static void print_registers(struct ad193x_priv* ad193x);
 
 /*
  * AD193X volume/mute/de-emphasis etc. controls
@@ -125,6 +126,7 @@ static const struct snd_soc_dapm_route ad193x_adc_audio_paths[] = {
 
 static inline bool ad193x_has_adc(const struct ad193x_priv *ad193x)
 {
+	printk(KERN_INFO "has_adc\n");
 	switch (ad193x->type) {
 	case AD1933:
 	case AD1934:
@@ -143,6 +145,7 @@ static inline bool ad193x_has_adc(const struct ad193x_priv *ad193x)
 static int ad193x_mute(struct snd_soc_dai *dai, int mute, int direction)
 {
 	struct ad193x_priv *ad193x = snd_soc_component_get_drvdata(dai->component);
+	printk(KERN_INFO "ad193x_mute\n");
 
 	if (mute)
 		regmap_update_bits(ad193x->regmap, AD193X_DAC_CTRL2,
@@ -151,6 +154,7 @@ static int ad193x_mute(struct snd_soc_dai *dai, int mute, int direction)
 	else
 		regmap_update_bits(ad193x->regmap, AD193X_DAC_CTRL2,
 				    AD193X_DAC_MASTER_MUTE, 0);
+	print_registers(ad193x);
 
 	return 0;
 }
@@ -160,6 +164,7 @@ static int ad193x_set_tdm_slot(struct snd_soc_dai *dai, unsigned int tx_mask,
 {
 	struct ad193x_priv *ad193x = snd_soc_component_get_drvdata(dai->component);
 	unsigned int channels;
+	printk(KERN_INFO "ad193x_set_tdm_slot %x %x %d %d\n", tx_mask, rx_mask, slots, width);
 
 	switch (slots) {
 	case 2:
@@ -196,6 +201,7 @@ static int ad193x_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	unsigned int dac_serfmt = 0;
 	unsigned int adc_fmt = 0;
 	unsigned int dac_fmt = 0;
+	printk(KERN_INFO "ad193x_set_dai_fmt\n");
 
 	/* At present, the driver only support AUX ADC mode(SND_SOC_DAIFMT_I2S
 	 * with TDM), ADC&DAC TDM mode(SND_SOC_DAIFMT_DSP_A) and DAC I2S mode
@@ -205,10 +211,12 @@ static int ad193x_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	case SND_SOC_DAIFMT_I2S:
 		adc_serfmt |= AD193X_ADC_SERFMT_TDM;
 		dac_serfmt |= AD193X_DAC_SERFMT_STEREO;
+		printk(KERN_INFO "ad1938 I2S\n");
 		break;
 	case SND_SOC_DAIFMT_DSP_A:
 		adc_serfmt |= AD193X_ADC_SERFMT_AUX;
 		dac_serfmt |= AD193X_DAC_SERFMT_TDM;
+		printk(KERN_INFO "ad1938 DSP\n");
 		break;
 	default:
 		if (ad193x_has_adc(ad193x))
@@ -281,6 +289,7 @@ static int ad193x_set_dai_sysclk(struct snd_soc_dai *codec_dai,
 	struct snd_soc_component *component = codec_dai->component;
 	struct snd_soc_dapm_context *dapm = snd_soc_component_get_dapm(component);
 	struct ad193x_priv *ad193x = snd_soc_component_get_drvdata(component);
+	printk(KERN_INFO "ad193x_set_dai_sysclk\n");
 
 	if (clk_id == AD193X_SYSCLK_MCLK) {
 		/* MCLK must be 512 x fs */
@@ -313,6 +322,7 @@ static int ad193x_hw_params(struct snd_pcm_substream *substream,
 	int word_len = 0, master_rate = 0;
 	struct snd_soc_component *component = dai->component;
 	struct ad193x_priv *ad193x = snd_soc_component_get_drvdata(component);
+	printk(KERN_INFO "ad193x_hw_params\n");
 
 	/* bit size */
 	switch (params_width(params)) {
@@ -360,6 +370,7 @@ static int ad193x_hw_params(struct snd_pcm_substream *substream,
 static int ad193x_startup(struct snd_pcm_substream *substream,
 			  struct snd_soc_dai *dai)
 {
+	printk(KERN_INFO "ad193x_startup\n");
 	return snd_pcm_hw_constraint_list(substream->runtime, 0,
 				   SNDRV_PCM_HW_PARAM_SAMPLE_BITS,
 				   &constr);
@@ -411,6 +422,16 @@ static struct snd_soc_dai_driver ad193x_no_adc_dai = {
 	.ops = &ad193x_dai_ops,
 };
 
+static void print_registers(struct ad193x_priv* ad193x)
+{
+	unsigned int n;
+	char vals[17];
+	regmap_bulk_read(ad193x->regmap, 0, vals, sizeof(vals));
+	for(n = 0; n < sizeof(vals); ++n)
+	{
+		printk(KERN_INFO "%d 0x%02x\n", n, vals[n]);
+	}
+}
 /* codec register values to set after reset */
 static void ad193x_reg_default_init(struct ad193x_priv *ad193x)
 {
@@ -435,6 +456,8 @@ static void ad193x_reg_default_init(struct ad193x_priv *ad193x)
 		{ 15, 0x43 },	/* ADC_CTRL1: sata delay=1, adc aux mode */
 		{ 16, 0x00 },	/* ADC_CTRL2: reset */
 	};
+	printk(KERN_INFO "ad193x_reg_default_init\n");
+	print_registers(ad193x);
 
 	regmap_multi_reg_write(ad193x->regmap, reg_init, ARRAY_SIZE(reg_init));
 
@@ -447,6 +470,7 @@ static void ad193x_reg_default_init(struct ad193x_priv *ad193x)
 static int ad193x_reset(struct snd_soc_component *component)
 {
 	struct ad193x_priv *ad193x = snd_soc_component_get_drvdata(component);
+	printk(KERN_INFO "ad193x_reset\n");
 
 	if (gpio_is_valid(ad193x->reset_gpio)) {
 		gpio_direction_output(ad193x->reset_gpio, 0);
@@ -463,6 +487,7 @@ static int ad193x_component_probe(struct snd_soc_component *component)
 	struct ad193x_priv *ad193x = snd_soc_component_get_drvdata(component);
 	struct snd_soc_dapm_context *dapm = snd_soc_component_get_dapm(component);
 	int num, ret;
+	printk(KERN_INFO "ad193x_component_probe\n");
 
 	/* Reset codec */
 	ad193x_reset(component);
@@ -530,6 +555,7 @@ int ad193x_probe(struct device *dev, struct regmap *regmap,
 {
 	struct ad193x_priv *ad193x;
 	int ret = 0;
+	printk(KERN_INFO "ad193x_probe\n");
 
 	if (IS_ERR(regmap))
 		return PTR_ERR(regmap);
