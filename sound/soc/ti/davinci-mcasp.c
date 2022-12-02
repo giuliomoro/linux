@@ -481,6 +481,7 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 		ret = -EINVAL;
 		goto out;
 	}
+	data_delay = 2;
 
 	mcasp_mod_bits(mcasp, DAVINCI_MCASP_TXFMT_REG, FSXDLY(data_delay),
 		       FSXDLY(3));
