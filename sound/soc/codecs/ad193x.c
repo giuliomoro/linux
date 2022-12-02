@@ -197,8 +197,8 @@ static int ad193x_set_dai_fmt(struct snd_soc_dai *codec_dai,
 		unsigned int fmt)
 {
 	struct ad193x_priv *ad193x = snd_soc_component_get_drvdata(codec_dai->component);
-	unsigned int adc_serfmt = 0;
-	unsigned int dac_serfmt = 0;
+	unsigned int adc_serfmt = 1 << 2; // see how this partially affects the DAC's behaviour. 0 breaks it, but 1 or 2 works.
+	unsigned int dac_serfmt = 3 << 3; // see how this doesn't affect the DAC's behaviour
 	unsigned int adc_fmt = 0;
 	unsigned int dac_fmt = 0;
 	printk(KERN_INFO "ad193x_set_dai_fmt\n");

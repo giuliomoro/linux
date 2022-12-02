@@ -45,7 +45,7 @@ int ad193x_probe(struct device *dev, struct regmap *regmap,
 #define AD193X_PLL_CLK_SRC_MCLK	(1 << 1)
 #define AD193X_DAC_CTRL0        0x02
 #define AD193X_DAC_POWERDOWN           0x01
-#define AD193X_DAC_SERFMT_MASK		0xC0
+#define AD193X_DAC_SERFMT_MASK		0xF8
 #define AD193X_DAC_SERFMT_STEREO	(0 << 6)
 #define AD193X_DAC_SERFMT_TDM		(1 << 6)
 #define AD193X_DAC_CTRL1        0x03
@@ -86,7 +86,7 @@ int ad193x_probe(struct device *dev, struct regmap *regmap,
 #define AD193X_ADCL2_MUTE 		4
 #define AD193X_ADCR2_MUTE 		5
 #define AD193X_ADC_CTRL1        0x0f
-#define AD193X_ADC_SERFMT_MASK		0x60
+#define AD193X_ADC_SERFMT_MASK		0x7C
 #define AD193X_ADC_SERFMT_STEREO	(0 << 5)
 #define AD193X_ADC_SERFMT_TDM		(1 << 5)
 #define AD193X_ADC_SERFMT_AUX		(2 << 5)
